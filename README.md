@@ -27,6 +27,22 @@ Everything runs and is stored locally; the only network traffic is to the AI.
   to fix it. Questions sent to it fail with that same hint and a **Retry** button, so nothing is lost.
   Log in, press **Check again** in the picker, then **Retry**.
 
+## Quick start
+
+```sh
+./start
+```
+
+`./start` installs Nix if it's missing (it asks for `sudo` once), then starts the backend (`:8000`) and the
+frontend dev server (`:5173`, hot reload). Open http://127.0.0.1:5173. `Ctrl+C` stops everything.
+
+| Option | Effect |
+|---|---|
+| `--prod` | Build the UI once and run a single server on `:8000` |
+| `--api-port N`, `--ui-port N` | Use different ports |
+
+The sections below describe running the server by hand.
+
 ## Start the server
 
 ```sh
@@ -67,30 +83,6 @@ endpoint used to check whether Claude is reachable (default `api.anthropic.com:4
 nix-shell --run "python3 backend/serve.py --reload"       # terminal 1: API on :8000
 nix-shell --run "cd frontend && npm run dev"              # terminal 2: UI on :5173, proxies /api to :8000
 ```
-
-### Use it from your other devices (Tailscale)
-
-The server has no login of its own, so don't expose it with `--host 0.0.0.0`. Instead, keep it bound to
-`127.0.0.1` and reach it over your private [Tailscale](https://tailscale.com) network. Only devices signed in
-to your tailnet can open it, and you get HTTPS.
-
-```sh
-# one-time, on this machine (Fedora shown; see tailscale.com/download for others)
-sudo dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-sudo dnf install tailscale
-sudo systemctl enable --now tailscaled
-sudo tailscale up                    # sign in in the browser
-sudo tailscale set --operator=$USER  # lets you run `tailscale serve` without sudo
-
-# share the app with your tailnet (keeps running in the background, survives reboots)
-tailscale serve --bg 8000
-tailscale serve status               # shows the URL, e.g. https://<machine>.<tailnet>.ts.net
-```
-
-Install the Tailscale app on your phone or laptop, sign in with the same account, and open that URL.
-Stop sharing with `tailscale serve --https=443 off`. Don't use `tailscale funnel`: it makes the app public.
-
-The AI still runs on *this* machine with your subscription logins, so keep it on and the server running.
 
 ## Using it
 
